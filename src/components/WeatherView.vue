@@ -9,59 +9,73 @@
    </div>
    
    
-   <table>
-       <tr>
-           <th>City</th>
-           <td>{{currentName}}</td>
-       </tr>
-       <tr>
-           <th>LAT</th>
-           <td>{{lat}}</td>
-       </tr>
-       <tr>
-           <th>LON</th>
-           <td>{{lon}}</td>
-       </tr>
-   </table>
 
 
 
+   <div class="currentWeather">
+        <h2> CURRENT WEATHER</h2>
+        <WeatherSingle :current="current" />
 
-   </div>
+    </div>
+
+    <div class="dailyWeather">
+        <h2>POGODA DZIENNA</h2>
+        <div class="dailywrapper">
+          <div class="daily" v-for="day in daily" :key="day.dt">                   
+              <WeatherSingle :current="day" />
+          
+
+        </div>
+
+
+       </div>
+    </div>
+ 
+ </div>  
 
 
 </template>
 
 <script>
+import WeatherSingle from './WeatherSingle.vue' 
 export default {
     name:"WeatherView",
+    components: {
+        WeatherSingle: WeatherSingle
+    },
     data(){
       return{
          // weather: "sun",
          cityName: "Gdańsk",
          lat: "",
          lon: "",
-         currentCity: ""
+         current: {},
+         daily: [],
+         currentCity: "",
          
       }
     },
     methods:{
-        getWeather(){
-            console.log('getWeather');
-
-
-        },
-        getLocation(cityName){
-            console.log(cityName)
-
-            fetch("http://api.openweathermap.org/geo/1.0/direct?q="+cityName+"&appid=04d03c358e8933ac6823da54c340c97b")
+        getWeather(lat, lon){
+            fetch("https://api.openweathermap.org/data/2.5/onecall?lat="+lat+"&lon="+lon+"&exclude=minutely,hourly,alerts&units=metric&appid=04d03c358e8933ac6823da54c340c97b")
+            .then(dt => dt.json())
+            .then(dt => {
+               console.log(dt)                                       
+               this.daily =  dt.daily;
+               this.current = dt.current;            
+            })
+         },
+        
+            
+         getLocation(){   
+            fetch("http://api.openweathermap.org/geo/1.0/direct?q="+this.cityName+"&appid=04d03c358e8933ac6823da54c340c97b")
              .then(dt => dt.json())
              .then(dt => {
                  this.cityName = dt[0].name;
                  this.currentCity = dt[0].name;
                  this.lat = dt[0].lat;
                  this.lon = dt[0].lon;
-                 console.log(dt[0])
+                 this.getWeather(dt[0].lat, dt[0].lon);
           })
         }
     },
@@ -72,6 +86,35 @@ export default {
 }
 </script>
 
-<style>
+<style lang="scss">
+  .weatherView{
+      .cityPicker{
+          display: flex;
+          justify-content: center;
+          input{
+              padding: 5em;
+              font-size: 2em;
+          }
+          button{
+              padding: .5em;
+              font-size: 2em;
+              border: none;
+              background: linear-gradient(#777, #222);
+              color: black;
+              border-radius: 5px;
+
+          }
+    }
+       .currentWeather{
+           flex-direction: column;
+           align-items: center;
+  }
+ 
+       .dailyWrapper,.currentWeather{
+           display: flex;
+           justify-content: center;
+           flex-wrap: wrap;
+       }
+   }
 
 </style> 
